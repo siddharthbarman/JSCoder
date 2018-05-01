@@ -1,0 +1,257 @@
+<html>
+	<head>
+		<title>JSCoder</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.8.0/styles/github.min.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.8.0/highlight.min.js"></script>
+		<script defer src="fa/svg-with-js/js/fontawesome-all.js"></script>
+		<style type="text/css" media="screen">
+			#editor, #output {				
+				width: 100%;
+        		height: 100%;
+			}
+
+			#output {
+				background-color: #00264d;
+				color: cyan;
+				font-family: Consolas, 'Courier New', Courier, monospace;
+				font-size: small;
+				scroll-behavior: auto;
+				overflow: scroll;
+				padding-left: 4px;				
+			}
+
+			.example-2, .example-3, .example-4, .example-5, .example-6 {
+				height: 250px;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+			}
+
+			.example-flex {
+				height: 200px;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+				display: flex;
+				flex-direction: row;
+			}
+
+			.example-flex-reverse {
+				flex-direction: row-reverse;
+			}
+
+			#left, #right {
+				height: 100vh;
+			}
+
+			.split p, .split-flex p {
+				padding: 20px;
+			}
+
+			.split, .split-flex {
+				-webkit-box-sizing: border-box;
+				-moz-box-sizing: border-box;
+						box-sizing: border-box;
+
+				overflow-y: auto;
+				overflow-x: hidden;
+			}
+
+			.gutter {
+				background-color: #eee;
+
+				background-repeat: no-repeat;
+				background-position: 50%;
+			}
+
+			.gutter.gutter-horizontal {
+				background-image: url('splitter/vertical.png');
+				cursor: ew-resize;
+			}
+
+			.gutter.gutter-vertical {
+				background-image: url('splitter/horizontal.png');
+				cursor: ns-resize;
+			}
+
+			.split.split-horizontal, .gutter.gutter-horizontal {
+				height: 100%;
+				float: left;
+			}
+
+			.toolButton {
+				cursor: pointer;
+				margin-left: 4px;
+				margin-right: 12px;
+				align-items: center;
+				font-size: small;
+				height: 26px;
+				display: flex;
+				color: lightgray;
+			}
+
+			#tools {
+				align-items: center;
+				font-size: smaller;
+				height: 26px;
+				display: flex;
+				background-color: #00264d;
+			}
+
+			.tool-button {				
+				color: lightgray;
+				margin-right: 4px;
+			}
+
+			.line {			
+				font-family: Consolas, 'Courier New', Courier, monospace;
+				font-size: small;
+				margin: 0px;
+				padding: 0px;
+			}
+
+			.input {
+				color: black;
+				background-color: white;
+			}
+		</style>		
+	</head>
+	<body>
+		<div class="example-2">
+			<div id="left" class="split split-horizontal">
+				<div id="tools">
+					<div class="toolButton" onclick="new_program(this)">
+						<i class="fas fa-file-alt tool-button"></i>
+						New 
+					</div>
+					<div class="toolButton" onclick="play(this)">
+						<i class="fas fa-paper-plane tool-button"></i>
+						Run
+					</div>
+					<div class="toolButton" onclick="undo(this)">
+							<i class="fas fa-undo tool-button"></i>
+							Undo
+						</div>
+					<div class="toolButton" onclick="clear_output(this)">
+						<i class="fas fa-eraser tool-button"></i>
+						Clear Output
+					</div>
+				</div>
+				<div id="editor">print("***** Welcome to JSCoder! *****");
+var greeting = 'Hello ';
+input('What is your name?', function(name) {
+	print(greeting + name + '!');
+});
+				</div>
+				<script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+				<script>
+					var editor = ace.edit("editor");
+					editor.setTheme("ace/theme/clouds");
+					editor.session.setMode("ace/mode/javascript");
+				</script>			
+			</div>
+			<div id="right" class="split split-horizontal">
+				<div id="output">					
+				</div>				
+			</div>
+		</div>
+	</body>
+	<script>hljs.initHighlightingOnLoad();</script>
+	<script src="splitter/split.js"></script>
+	<script>				
+		Split(['#left', '#right'], {
+			sizes: [50, 50],
+			minSize: 200,
+			gutterSize: 10
+		});	
+
+		function print(str) {
+			var outdiv = document.getElementById("output");
+			var line = document.createElement("div");
+			if (str) {
+				line.innerText = str;
+			}
+			else {
+				var br = document.createElement('br');
+				line.appendChild(br);
+			}
+			line.className = "line";
+			outdiv.appendChild(line);
+		}
+
+		function new_program(sender) {
+			if (editor.getValue()) {
+				var result = confirm("Are you sure you want wipe out the existing program and start afresh?");
+				if (result == true) {
+					last_program = editor.getValue();
+					editor.setValue("");
+				}
+			} 
+		}
+
+		function play(sender) {			
+			var code = editor.getValue();
+			try {
+				eval(code);
+			}
+			catch(e) {				
+				print(e.message);
+			}
+		}
+
+		function undo(sender) {			
+			editor.undo();
+		}
+
+		function clear_output(sender) {
+			var outdiv = document.getElementById("output");
+			outdiv.innerText = "";
+		}
+
+		function input(str, fn) {
+			var outdiv = document.getElementById("output");
+			var line = document.createElement("div");
+			line.innerText = str;
+			line.className = "line";
+			outdiv.appendChild(line);
+			var inputbox = document.createElement("input");
+			inputbox.type = 'text';
+			inputbox.className = 'input';
+			inputbox.onkeyup = function(event) {				
+				if (event.keyCode == 13) {
+					var value = inputbox.value;
+					line.removeChild(inputbox);
+					fn(value);
+				}
+			};			
+			line.appendChild(inputbox);
+			inputbox.focus();
+		}
+
+		function about() {
+			print ('(c) 2018 Siddharth Barman');
+			print ('This program can be used for free. You are free to modify it to suit your whatever your purpose.');
+			print ('The above license is valid only if you maintain attributions to the author (Siddharth Barman) of this program.');
+			
+			print ();			
+			print ('Why was this program made?');
+			print ('--------------------------');
+			print ('This program was developed as a result of trying to teach my eleven year old son computer programming. A number of options were considered like using C, Python, BASIC however none of them fit the bill.');			
+			print ('For instance, C or C++ requires setting up a compiler and preparing a programming environment. Python has a pretty weird syntax quite unlike standard languages like C++, Java or C#. I wanted something which was close to traditional languages but require minimal software to be setup.');
+			print ('JavaScript seemed like a good choice as its quite like C++/Java/C# with the braces and similar if/for/while constructs - enough to get started with basic conditions and loops.');
+			print ('Initially we started coding in VS Code which I like very much but soon I realised having everything (code editor plus output) in one place is very much needed. I know there are a lot of online editor but I wanted something which runs offline and also provides me an execuse to write some more code :). The result of all of this is JSCoder. I haven\'t checked if the name is taken but for now it is JSCoder. ');
+
+			print ();
+			print ('Thanks list:');
+			print ('------------');
+			print ('1. An excellent and easy to use JavaScript splitter by Nathan Cahill. Visit https://nathancahill.github.io/Split.js/');
+			print ('2. Probably needs no introduction, the ACE editor I have used for the left code editor pane. Visit https://ace.c9.io');
+
+			print ();
+			print ('Next enhancements?');
+			print ('------------------');
+			print ('There are a number of enhancements I can think of like saving and opening source files. I hope I can enough time to get to those. Enough said, hope you enjoy using JSCoder.');
+
+		}
+	</script>
+</html>
